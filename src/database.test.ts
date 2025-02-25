@@ -178,16 +178,12 @@ describe("Collection", () => {
       // Mock document references and their get results
       const mockDoc1Result = {
         id: "doc1",
-        exists: true,
-        data: { name: "Document 1" },
-        path: "users/doc1",
+        name: "Document 1",
       };
 
       const mockDoc2Result = {
         id: "doc2",
-        exists: true,
-        data: { name: "Document 2" },
-        path: "users/doc2",
+        name: "Document 2",
       };
 
       // Create mock document references
@@ -223,7 +219,6 @@ describe("Collection", () => {
 
       expect(result).toEqual({
         docs: [mockDoc1Result, mockDoc2Result],
-        empty: false,
       });
     });
 
@@ -237,7 +232,6 @@ describe("Collection", () => {
 
       expect(result).toEqual({
         docs: [],
-        empty: true,
       });
     });
 
@@ -295,13 +289,12 @@ describe("Document", () => {
 
       expect(result).toEqual({
         id: "123",
-        exists: true,
-        data: documentData,
-        path: "users/123",
+        name: "Test User",
+        email: "test@example.com",
       });
     });
 
-    it("should return non-existent document when it does not exist", async () => {
+    it("should return only id when document does not exist", async () => {
       // Mock a 404 error from GitHub API
       const error = new Error("Not found");
       (error as any).status = 404;
@@ -311,9 +304,6 @@ describe("Document", () => {
 
       expect(result).toEqual({
         id: "123",
-        exists: false,
-        data: null,
-        path: "users/123",
       });
     });
   });

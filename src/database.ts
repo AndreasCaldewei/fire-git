@@ -1,13 +1,11 @@
 import { Octokit } from "@octokit/rest";
 
 /**
- * Document data returned from a get operation
+ * Document data returned from a get operation - now flattened
  */
 export interface DocumentData {
   id: string;
-  exists: boolean;
-  data: any | null;
-  path: string;
+  [key: string]: any; // Allow dynamic properties
 }
 
 /**
@@ -15,7 +13,6 @@ export interface DocumentData {
  */
 export interface CollectionData {
   docs: DocumentData[];
-  empty: boolean;
 }
 
 /**
@@ -127,7 +124,7 @@ export class Collection {
 
   /**
    * Get all documents in a collection
-   * @returns Collection result with documents
+   * @returns Collection result with flattened documents
    */
   async get(): Promise<CollectionData> {
     try {
@@ -162,14 +159,12 @@ export class Collection {
         // Return a simplified result with just the documents
         return {
           docs: results,
-          empty: results.length === 0,
         };
       } catch (error: any) {
         if (error.status === 404) {
           // Collection doesn't exist, return empty
           return {
             docs: [],
-            empty: true,
           };
         }
         throw error;
@@ -308,8 +303,8 @@ export class Document {
   }
 
   /**
-   * Get a document
-   * @returns The document data
+   * Get a document - returns flattened structure
+   * @returns The document data in a flat structure
    */
   async get(): Promise<DocumentData> {
     try {
@@ -327,21 +322,16 @@ export class Document {
         const content = Buffer.from(data.content, "base64").toString("utf8");
         const documentData = JSON.parse(content);
 
-        // Return just the document data with minimal metadata
+        // Return flattened structure combining metadata and data
         return {
           id: this.id,
-          exists: true,
-          data: documentData,
-          path: this.path,
+          ...documentData,
         };
       } catch (error: any) {
         if (error.status === 404) {
           // Document doesn't exist
           return {
             id: this.id,
-            exists: false,
-            data: null,
-            path: this.path,
           };
         }
         throw error;
