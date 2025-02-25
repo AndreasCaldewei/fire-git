@@ -132,7 +132,6 @@ export class Collection {
   async get(): Promise<CollectionData> {
     try {
       const fullPath = (this.db as any)._getFullPath(this.path);
-
       try {
         const { data } = await (this.db as any).octokit.repos.getContent({
           owner: (this.db as any).owner,
@@ -140,26 +139,25 @@ export class Collection {
           path: fullPath,
           ref: (this.db as any).branch,
         });
-
         // If this is a single file, not a directory
         if (!Array.isArray(data)) {
           throw new Error(
             `Expected a collection but found a file at ${this.path}`,
           );
         }
-
         // Get all documents in the collection
         const docs = data.filter(
           (item: any) => item.type === "file" && item.name.endsWith(".json"),
         );
 
-        const results: DocumentData[] = [];
-        for (const doc of docs) {
-          const id = doc.name.replace(".json", "");
-          const docRef = this.doc(id);
-          const docData = await docRef.get();
-          results.push(docData);
-        }
+        // Use Promise.all to fetch all documents concurrently
+        const results = await Promise.all(
+          docs.map(async (doc: any) => {
+            const id = doc.name.replace(".json", "");
+            const docRef = this.doc(id);
+            return docRef.get();
+          }),
+        );
 
         // Return a simplified result with just the documents
         return {
